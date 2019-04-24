@@ -1,0 +1,13 @@
+package:
+  name: htcondor
+  version: 8.9.2
+
+source:
+  git_url: https://github.com/htcondor/htcondor.git
+
+requirements:
+  build:
+    - cmake
+    - python
+  run:
+    - python
