@@ -27,6 +27,8 @@
 #include "pandajob.h"
 #include "gridmanager.h"
 
+#include <Python.h>
+
 HashTable <std::string, PandaResource *>
     PandaResource::ResourcesByName( hashFunction );
 
@@ -35,7 +37,7 @@ const char *PandaResource::HashName( const char *resource_name,
 {
 	static std::string hash_name;
 
-	formatstr( hash_name, "nordugrid %s#%s", resource_name, 
+	formatstr( hash_name, "panda %s#%s", resource_name, 
 					   proxy_subject ? proxy_subject : "NULL" );
 
 	return hash_name.c_str();
@@ -152,7 +154,10 @@ void PandaResource::DoPing( unsigned& ping_delay, bool& ping_complete,
 	}
 
 	ping_delay = 0;
+	ping_complete = true;
+	ping_succeeded = true;
 
+	/*
 	rc = gahp->nordugrid_ping( resourceName );
 
 	if ( rc == GAHPCLIENT_COMMAND_PENDING ) {
@@ -164,6 +169,7 @@ void PandaResource::DoPing( unsigned& ping_delay, bool& ping_complete,
 		ping_complete = true;
 		ping_succeeded = true;
 	}
+	*/
 }
 
 void PandaResource::DoJobStatus()
@@ -189,7 +195,11 @@ void PandaResource::DoJobStatus()
 
 	if ( m_jobStatusActive == false ) {
 
-			// start ldap status command
+		// here we start async panstat call? Yes!
+		// execvpe + panstat + environment + list of jobs
+
+		/*
+		// start ldap status command
 		dprintf( D_FULLDEBUG, "Starting ldap poll: %s\n", resourceName );
 
 		std::string ldap_server = resourceName;
@@ -208,11 +218,14 @@ void PandaResource::DoJobStatus()
 					 rc, resourceName );
 			EXCEPT( "nordugrid_ldap_query failed!" );
 		}
+		*/
 		m_jobStatusActive = true;
 
 	} else {
 
+		// here must be panstat call
 			// finish ldap status command
+		/*
 		int rc = m_statusGahp->nordugrid_ldap_query( NULL, NULL, NULL, NULL, results );
 
 		if ( rc == GAHPCLIENT_COMMAND_PENDING ) {
@@ -223,7 +236,7 @@ void PandaResource::DoJobStatus()
 					 rc, resourceName, m_statusGahp->getErrorString() );
 			dprintf( D_ALWAYS, "Requesting ping of resource\n" );
 			RequestPing( NULL );
-		}
+		}*/
 
 		if ( rc == 0 ) {
 			const char *next_job_id = NULL;
@@ -234,7 +247,16 @@ void PandaResource::DoJobStatus()
 			results.rewind();
 			do {
 				next_attr = results.next();
+				// here to parse a record
 
+				char *token;
+				token = strtok (next_attr,":");
+				if(token != NULL){
+					next_job_id = token;
+				}
+				next_status = next_attr;
+				
+				/*
 				if ( next_attr != NULL && *next_attr != '\0' ) {
 						// Save the attributes we're interested in
 					if ( !strncmp( next_attr, "nordugrid-job-globalid: ", 24 ) ) {
@@ -243,7 +265,7 @@ void PandaResource::DoJobStatus()
 						next_status = next_attr;
 					}
 					continue;
-				}
+				}*/
 					// We just reached the end of a record. Process it.
 					// If we don't have the attributes we expect, skip it.
 				if ( next_job_id && next_status ) {
@@ -253,7 +275,7 @@ void PandaResource::DoJobStatus()
 					PandaJob *job = NULL;
 					id = strrchr( next_job_id, '/' );
 					id = (id != NULL) ? (id + 1) : "";
-					formatstr( key, "nordugrid %s %s", resourceName, id );
+					formatstr( key, "panda %s %s", resourceName, id );
 					rc2 = BaseJob::JobsByRemoteId.lookup( key, base_job );
 					if ( rc2 == 0 && (job = dynamic_cast<PandaJob*>(base_job)) ) {
 						job->NotifyNewRemoteStatus( strchr( next_status, ' ' ) + 1 );
@@ -267,7 +289,7 @@ void PandaResource::DoJobStatus()
 
 		m_jobStatusActive = false;
 
-		dprintf( D_FULLDEBUG, "ldap poll complete: %s\n", resourceName );
+		dprintf( D_FULLDEBUG, "panda poll complete: %s\n", resourceName );
 
 		daemonCore->Reset_Timer( m_jobStatusTid, m_paramJobPollInterval );
 	}
