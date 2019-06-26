@@ -36,6 +36,7 @@
 #include "globusjob.h"
 
 #include "nordugridjob.h"
+#include "pandajob.h"
 #include "unicorejob.h"
 #include "condorjob.h"
 #include "infnbatchjob.h"
@@ -338,6 +339,14 @@ Init()
 	new_type->ReconfigFunc = NordugridJobReconfig;
 	new_type->AdMatchFunc = NordugridJobAdMatch;
 	new_type->CreateFunc = NordugridJobCreate;
+	jobTypes.Append( new_type );
+
+	new_type = new JobType;
+	new_type->Name = strdup( "PanDA" );
+	new_type->InitFunc = PandaJobInit;
+	new_type->ReconfigFunc = PandaJobReconfig;
+	new_type->AdMatchFunc = PandaJobAdMatch;
+	new_type->CreateFunc = PandaJobCreate;
 	jobTypes.Append( new_type );
 	
 #if defined( LINUX ) || defined(DARWIN) || defined(WIN32)
