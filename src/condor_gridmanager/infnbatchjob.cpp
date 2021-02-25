@@ -119,6 +119,7 @@ bool INFNBatchJobAdMatch( const ClassAd *job_ad ) {
 		   strncasecmp( resource.c_str(), "batch", 5 ) == 0 ||
 		   strncasecmp( resource.c_str(), "pbs", 3 ) == 0 ||
 		   strncasecmp( resource.c_str(), "lsf", 3 ) == 0 ||
+		   strncasecmp( resource.c_str(), "panda", 5 ) == 0 ||
 		   strncasecmp( resource.c_str(), "nqs", 3 ) == 0 ||
 		   strncasecmp( resource.c_str(), "sge", 3 ) == 0 ||
 		   strncasecmp( resource.c_str(), "naregi", 6 ) == 0 ) ) {
